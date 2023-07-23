@@ -1,5 +1,8 @@
 from datetime import datetime
 from collections import UserDict
+import pickle
+
+
 
 class Field():
     def __init__(self, value=None):
@@ -76,13 +79,13 @@ class Record():
             self.add_phone(phone)
 
     def __str__(self):
-        return f"self.name: self.phones"
+        return f"{str(self.name).lower()}  {', '.join(str(phone) for phone in self.phones)}  {str(self.birthday) if self.birthday else '-'}"
         
     def __repr__(self):
-        return f"self.name: self.phones"
+        return f"{self.name}: {self.phones}"
         
     def add_phone(self, phone: Phone):
-        if phone.value not in [p.value for p in self.phones]:
+        if phone.value not in [phone.value for phone in self.phones]:
             self.phones.append(phone)
             return f"Phone {phone} add to contact {self.name}"
         return f"Phone {phone} present in phones of contact {self.name}"
@@ -125,8 +128,8 @@ class AddressBook(UserDict):
         else:            
             return f"Record {record.name.value} alredy exists"
     
-    def __iter__(self):
-        return self.iterator()
+    # def __iter__(self):
+    #     return self.iterator()
 
     def iterator(self, group_size):
         records = list(self.data.values())
@@ -138,4 +141,37 @@ class AddressBook(UserDict):
             self.current_index += group_size
             yield group
 
+    def __getstate__(self) -> object:
+        data = self.__dict__    
+        return data
+
+    def __setstate__(self, value):        
+        self.__dict__ = value
         
+    def save_data(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self.data, f)
+        return f"The address_book is saved."
+
+    def load_data(self, filename):
+        try:
+            with open(filename, 'rb') as f:
+                self.data = pickle.load(f)
+            print(f"The address_book is loaded.")
+        except (FileNotFoundError, TypeError) as e:
+            print(f"{e}")
+
+        
+    def find_data(self, fragment:str):
+        count = 0
+        result = ""
+        for rec in self.values():                
+            line = str(rec) + "\n"            
+            if fragment in line:
+                result += line
+                count += 1
+        if result:
+            result = f"The following {str(count)} records were found on the fragment '{fragment}' \n\n" + result
+        else:
+            result = f"No records was found for the fragment '{fragment}' \n"
+        return result    

@@ -1,7 +1,7 @@
 from datetime import datetime
 from classes import AddressBook, Record, Birthday, Name, Phone
 
-
+file_name = "a_book.bin"
 address_book = AddressBook({})
 
 
@@ -13,6 +13,12 @@ def input_error(func):
             return f"{e} Enter the data correctly"
                     
     return wrapper
+
+
+input_error
+def find_command(*args):
+    return address_book.find_data(args[0])
+
 
 @input_error
 def birthday_command(*args):
@@ -85,9 +91,9 @@ def show_all_command(*args):
     while ch := input("Enter any key to browsing (empty to exit): "):
         try:
             result = next(page)
-            print("_" * 100)
+            print("_" * 70)
             print(" {:15} | {:15} | {:60} ".format("name", "birthday", "phones")) 
-            print("-" * 100)          
+            print("-" * 70)          
             for record in result:
                 phones = ', '.join(str(phone) for phone in record.phones)
                 print(" {:<15} | {:<15} | {:<60} ".format(str(record.name),  
@@ -98,6 +104,7 @@ def show_all_command(*args):
 
 
 def exit_command(*args):
+    address_book.save_data(file_name)
     return "Good bye!"
 
 
@@ -110,6 +117,7 @@ def help():
         \nshow all <Number of entries per page> \
         \nbirthday name dd-mm-yyyy \
         \nbd name \
+        \nfind name/number \
         \nexit \
         \n"
 
@@ -126,6 +134,7 @@ COMMANDS = {
     show_all_command: ("show all", ),
     birthday_command: ("birthday", ),    
     bd_command: ("bd", ),
+    find_command: ("find", ),
     exit_command: ("good bye", "close", "exit")
 }
 
@@ -140,6 +149,7 @@ def parser(text: str):
 
 
 def main():
+    address_book.load_data(file_name)    
     while True:
         user_input = input(">>>").lower()
         command, data = parser(user_input)
